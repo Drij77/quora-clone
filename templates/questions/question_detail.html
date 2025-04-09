@@ -1,0 +1,65 @@
+{% extends "questions/base.html" %}
+
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title">{{ question.title }}</h2>
+            <p class="card-text">{{ question.content }}</p>
+            <div class="text-muted">
+                <small>
+                    Posted by {{ question.author.username }} on {{ question.created_at|date:"F d, Y" }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-4">Answers</h3>
+    
+    {% if user.is_authenticated %}
+        <form method="POST" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.content }}
+            </div>
+            <button type="submit" class="btn btn-primary">Post Answer</button>
+        </form>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to post an answer.</p>
+    {% endif %}
+
+    {% for answer in answers %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text">{{ answer.content }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <small>
+                            Answered by {{ answer.author.username }} on {{ answer.created_at|date:"F d, Y" }}
+                        </small>
+                    </div>
+                    <div>
+                        {% if user.is_authenticated %}
+                            <form method="POST" action="{% url 'like-answer' answer.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if user in answer.likes.all %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                    {% if user in answer.likes.all %}
+                                        Unlike
+                                    {% else %}
+                                        Like
+                                    {% endif %}
+                                    ({{ answer.total_likes }})
+                                </button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="bi bi-heart"></i> {{ answer.total_likes }} likes
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>No answers yet.</p>
+    {% endfor %}
+{% endblock %} 
